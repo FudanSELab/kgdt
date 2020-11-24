@@ -22,7 +22,7 @@ deploy:
   distributions: sdist bdist_wheel
   user: FDSEKG
   password:
-    secure: PLEASE_REPLACE_ME
+    secure: ent95rzmPEnsRP2/99gECFNwwEL3P+xQZVv+hSKn6hVMKPy+U0aKrz0PbM6Pdq6cAqdUCmOvCuTDapOCLfjgdlq6drDMhC5FE+vsTIeblH7BvDQUKhDAlhphCFSS2CZVy64iPcv8WAwYIAfAVFK0Z9dZX9ecNgZ+z3h+mxWBE/AcGNLuy0w1hGNYh4NNikwgYhJAjYr2387gmwGI9DMQw2ovZXb7EHAbTc8SW/PdL9goX1jRkklVJiH+XJnn2iBrCNhVm0P948UYSoC/fqrKIfPIRS7vIRpZLRhlukHC4NUH2JJsutndHymp/et1/OYNiY2PhYYcBzNnqJeksTH09NB96Ez8kivx9h7Y+oVZDPXhXkPU4UnvwNpIUz63VrPmjTg3wabp59y0ngboJ6fhNuNHH7K25LlNwG2a/831vCqEc+rcs7Yj2MSmuzdPo2W+Owl+f1yDo8nXdy0RoUmZQXv1/1ug3t12FfAH2RXAOnXdSD0bnb8DNdFMXqHg632sjEN++x/iz0qOtrzmgeNkOxLMYtkhaiAKUBNcHH4yU3KLkJcwRqW8VaBKjSCBfH6k5/vYR31P2/wQ9PnT+6HFZVe7Cw0kDDWjOTBndlLt3GjT1TFgEQQudngh9qtZ345OJ47ZnPzJiPQnwyQEYhTUEF/ADdsSIdbZv2wTYWQ3hR4=
   on:
     tags: true
     repo: FudanSELab/kgdt
