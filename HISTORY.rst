@@ -6,3 +6,8 @@ History
 ------------------
 
 * First release on PyPI.
+
+0.2.0 (2020-11-30)
+------------------
+
+* Add GraphData and MultiFieldDocumentCollection.
