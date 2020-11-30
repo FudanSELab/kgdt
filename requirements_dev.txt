@@ -10,10 +10,10 @@ twine==1.14.0
 Click==7.0
 pytest==4.6.5
 pytest-runner==5.1
-
 setuptools>=50.3.2
+
 
 networkx>=2.4
 numpy>=1.18
-scipy>=1.5.0
+scipy>=1.4.0
 smart_open

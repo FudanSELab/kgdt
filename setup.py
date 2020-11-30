@@ -14,7 +14,7 @@ requirements = [
     'Click>=7.0',
     'networkx>=2.4',
     'numpy>=1.18',
-    'scipy>=1.5.0',
+    'scipy>=1.4.0',
     'smart_open'
 ]
 
