@@ -12,8 +12,9 @@ with open('HISTORY.rst') as history_file:
 
 requirements = [
     'Click>=7.0',
-    'numpy>=1.19.4',
-    'scipy>=1.5.4',
+    'networkx>=2.4',
+    'numpy>=1.18',
+    'scipy>=1.5.0',
     'smart_open'
 ]
 
