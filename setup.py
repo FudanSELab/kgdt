@@ -13,7 +13,8 @@ with open('HISTORY.rst') as history_file:
 requirements = [
     'Click>=7.0',
     'numpy>=1.19.4',
-    'scipy>=1.5.4'
+    'scipy>=1.5.4',
+    'smart_open'
 ]
 
 setup_requirements = ['pytest-runner', ]
