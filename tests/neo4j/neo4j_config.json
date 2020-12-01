@@ -1,0 +1,12 @@
+[
+  {
+    "server_name": "LocalHostServer",
+    "server_id": 1,
+    "host": "localhost",
+    "user": "neo4j",
+    "password": "neo4j",
+    "http_port": 7474,
+    "https_port": 7473,
+    "bolt_port": 7687
+  }
+]
