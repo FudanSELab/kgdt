@@ -14,6 +14,7 @@
 import inspect
 import logging
 import pickle as _pickle
+import traceback
 import warnings
 from functools import wraps
 
@@ -423,3 +424,24 @@ def deprecated(reason):
 
     else:
         raise TypeError(repr(type(reason)))
+
+
+def catch_exception(is_print=True):
+    """
+    a decorator to catch exception and print it.
+    :param is_print: whether print the stacktrace
+    :return:
+    """
+
+    def decorator(function):
+
+        def wrapped(*args, **kwargs):
+            try:
+                return function(*args, **kwargs)
+            except Exception as err:
+                if is_print:
+                    traceback.print_exc()
+
+        return wrapped
+
+    return decorator
