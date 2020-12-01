@@ -829,7 +829,7 @@ class GraphData(SaveLoad):
         get all labels as set for current node.
         :return: a set of labels.
         """
-        return self.label_to_ids_map.keys()
+        return set(self.label_to_ids_map.keys())
 
     def get_all_relation_types(self):
         """
@@ -837,7 +837,7 @@ class GraphData(SaveLoad):
         :return: a set of relation type strings
         """
 
-        return self.get_relation_type_to_num_map().keys()
+        return set(self.get_relation_type_to_num_map().keys())
 
     def get_relation_count_by_type(self, relation_type):
         relation_type_to_num_map = self.get_relation_type_to_num_map()
