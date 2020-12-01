@@ -426,22 +426,16 @@ def deprecated(reason):
         raise TypeError(repr(type(reason)))
 
 
-def catch_exception(is_print=True):
+def catch_exception(function):
     """
     a decorator to catch exception and print it.
-    :param is_print: whether print the stacktrace
     :return:
     """
+    # todo: make this print as the parameter of the decorator
+    def wrapped(*args, **kwargs):
+        try:
+            return function(*args, **kwargs)
+        except Exception as err:
+            traceback.print_exc()
 
-    def decorator(function):
-
-        def wrapped(*args, **kwargs):
-            try:
-                return function(*args, **kwargs)
-            except Exception as err:
-                if is_print:
-                    traceback.print_exc()
-
-        return wrapped
-
-    return decorator
+    return wrapped
