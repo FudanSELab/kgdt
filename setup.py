@@ -15,7 +15,8 @@ requirements = [
     'networkx>=2.4',
     'numpy>=1.18',
     'scipy>=1.4.0',
-    'smart_open'
+    'smart_open',
+    'py2neo'
 ]
 
 setup_requirements = ['pytest-runner', ]
