@@ -12,11 +12,13 @@
 """
 import traceback
 
+from py2neo import Subgraph
+
 from kgdt.models.graph import GraphData
 from kgdt.neo4j.accessor.base import GraphAccessor
 from kgdt.neo4j.accessor.index import IndexGraphAccessor
 from kgdt.neo4j.accessor.metadata import MetadataGraphAccessor
-from kgdt.neo4j.creator import NodeBuilder
+from kgdt.neo4j.creator import NodeBuilder, RelationshipBuilder
 from kgdt.utils import catch_exception
 
 
@@ -112,53 +114,63 @@ class Neo4jImporter:
         :param clear: clear the graph content, default is not clear the graph contain
         :return:
         """
+
+        # todo: this statement may cause some warnings, maybe need to fix
         index_accessor = IndexGraphAccessor(self.graph_accessor)
-        index_accessor.create_index(label=self.DEFAULT_LABEL, property_name=self.DEFAULT_PRIMARY_KEY)
+        # index_accessor.create_index(label=self.DEFAULT_LABEL, property_name=self.DEFAULT_PRIMARY_KEY)
 
         if clear:
             self.graph_accessor.delete_all_relations()
             self.graph_accessor.delete_all_nodes()
 
-        # todo: this is slow, need to speed up, maybe not commit on every step
+        nodes = []
+        node_dict = {}
+
         all_node_ids = graph_data.get_node_ids()
         for node_id in all_node_ids:
-            ## todo: fix this by not using 'properties','labels'
             node_info_dict = graph_data.get_node_info_dict(node_id)
             properties = node_info_dict['properties']
             labels = node_info_dict['labels']
-            self.import_one_entity(node_id, properties, labels)
+            node = self.create_one_node(node_id, properties, labels)
+            node_dict[node_id] = node
+            nodes.append(node)
+        print("all nodes created")
 
-        print("all entity imported")
-        relations = graph_data.get_relations()
-        for r in relations:
+        all_relations = graph_data.get_relations()
+        relations = []
+        for r in all_relations:
             start_node_id, r_name, end_node_id = r
-            start_node = self.graph_accessor.find_node(primary_label=self.DEFAULT_LABEL,
-                                                       primary_property=self.DEFAULT_PRIMARY_KEY,
-                                                       primary_property_value=start_node_id)
-            end_node = self.graph_accessor.find_node(primary_label=self.DEFAULT_LABEL,
-                                                     primary_property=self.DEFAULT_PRIMARY_KEY,
-                                                     primary_property_value=end_node_id)
+            start_node = node_dict[start_node_id]
+            end_node = node_dict[end_node_id]
 
             if start_node is not None and end_node is not None:
                 try:
-                    self.graph_accessor.create_relation_without_duplicate(start_node, r_name, end_node)
+                    relation = self.create_one_relationship(start_node, r_name, end_node)
+                    relations.append(relation)
                 except Exception as e:
                     traceback.print_exc()
             else:
                 print("fail create relation because start node or end node is none.")
-        print("all relation imported")
+        print("all relations created")
+        self.graph_accessor.create_all_nodes_and_relations(nodes, relations)
+        print("graph data created")
 
         print("all graph data import finish")
 
     @catch_exception
-    def import_one_entity(self, node_id, property_dict, labels):
+    def create_one_node(self, node_id, property_dict, labels):
         builder = NodeBuilder()
         builder.add_label(self.DEFAULT_LABEL).add_property(**property_dict). \
             add_one_property(property_name=self.DEFAULT_PRIMARY_KEY, property_value=node_id).add_labels(*labels)
         node = builder.build()
+        return node
 
-        node = self.graph_accessor.create_or_update_node(node, primary_label=self.DEFAULT_LABEL,
-                                                         primary_property=self.DEFAULT_PRIMARY_KEY)
+    @catch_exception
+    def create_one_relationship(self, start_node, r_name, end_node):
+        builder = RelationshipBuilder()
+        builder.set_start_node(start_node).set_end_node(end_node).set_name(r_name)
+        relation = builder.build()
+        return relation
 
 
 class GraphDataExporter:

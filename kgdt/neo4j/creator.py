@@ -1,4 +1,4 @@
-from py2neo import Node
+from py2neo import Node, Relationship
 
 
 class NodeBuilder:
@@ -80,3 +80,30 @@ class NodeBuilder:
         ##todo: change the value to constant
         node_json = {"id": -1, "properties": self.property_dict, "labels": self.labels}
         return node_json
+
+
+class RelationshipBuilder:
+    """
+    a builder for Relationship
+    """
+
+    def __init__(self):
+        self.end_node = None
+        self.name = ""
+        self.start_node = None
+
+    def set_start_node(self, start_node):
+        self.start_node = start_node
+        return self
+
+    def set_end_node(self, end_node):
+        self.end_node = end_node
+        return self
+
+    def set_name(self, name):
+        self.name = name
+        return self
+
+    def build(self):
+        relation = Relationship(self.start_node, self.name, self.end_node)
+        return relation

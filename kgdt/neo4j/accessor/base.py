@@ -11,11 +11,9 @@
 @Description:
 """
 
-
 import time
 
-from py2neo import Graph, Node, Relationship
-
+from py2neo import Graph, Node, Relationship, Subgraph
 
 __CYPHER_MERGE_RELATION__ = 'MATCH (a) WHERE id(a) = {start_id} MATCH (b) WHERE id(b) ={end_id} MERGE (a)-[r:`{relation_name}`]->(b) RETURN r'
 
@@ -87,6 +85,24 @@ class GraphAccessor:
                 return True
         else:
             return False
+
+    def create_all_nodes_and_relations(self, nodes, relations):
+        """
+        create all nodes and relations in the graph and update the graph
+        make sure that the graph is empty before using it
+        :param nodes: all the nodes in the graph
+        :param relations: all the relations in the graph
+        """
+        if not nodes:
+            print("fail to create graph for nodes does not contain any node")
+            return None
+        graph = None
+        try:
+            graph = Subgraph(nodes, relations)
+            self.graph.create(graph)
+        except Exception as error:
+            print(error)
+        return graph
 
     def create_relation_without_duplicate(self, start_node, relation_str, end_node):
         """
