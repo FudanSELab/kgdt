@@ -17,4 +17,4 @@ networkx>=2.4
 numpy>=1.18
 scipy>=1.4.0
 smart_open
-py2neo
+py2neo=4.2.0

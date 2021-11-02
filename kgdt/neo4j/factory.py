@@ -73,8 +73,13 @@ class GraphInstanceFactory:
         return self.config_file_path
 
     def __create_py2neo_graph_by_config(self, config):
-        return Graph(host=config['host'],
-                     port=config['bolt_port'],
-                     scheme="bolt",
-                     user=config['user'],
-                     password=config['password'])
+        try:
+            return Graph(host=config['host'],
+                         port=config['bolt_port'],
+                         scheme="bolt",
+                         user=config['user'],
+                         password=config['password'])
+        except BaseException:
+            return Graph('bolt' + ':' + '//' + config['host'] + ':' + str(config['bolt_port']),
+                         auth=(config['user'], config['password']))
+
