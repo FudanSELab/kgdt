@@ -18,7 +18,7 @@ from kgdt.neo4j.accessor.index import IndexGraphAccessor
 from kgdt.neo4j.accessor.metadata import MetadataGraphAccessor
 from kgdt.neo4j.creator import NodeBuilder
 from kgdt.utils import catch_exception
-
+import os
 
 class DataExporterAccessor(GraphAccessor):
     def get_all_nodes_not_batch(self, node_label):
@@ -159,6 +159,121 @@ class Neo4jImporter:
 
         node = self.graph_accessor.create_or_update_node(node, primary_label=self.DEFAULT_LABEL,
                                                          primary_property=self.DEFAULT_PRIMARY_KEY)
+
+
+class BatchNeo4jImporter:
+    '''
+    The class is used to import datas from csv to a Neo4j database.
+    '''
+
+    def __init__(self, graph_client: GraphAccessor):
+        self.graph_accessor = graph_client
+
+    def batch_import_nodes_from_csv(self, commit_num, csv_file, labels, property_name_in_neo4j_to_property_name_in_csv):
+        '''
+        就是为了生成以下格式的cypher语句
+        using periodic commit 1000 load csv with headers from "file:///good.csv" as line
+        merge(no:`good`:`entity`{`good id`: line["good id"] ,`good name`: line["good name"] })
+        :param commit_num: how many nodes are submitted once during batch import
+        :param csv_file: batch imported CSV file name, the CSV file should be placed in the import folder
+        :param labels: a set ,the node labels
+        :param property_name_in_neo4j_to_property_name_in_csv: a dict
+        :return:
+        '''
+        cypher_start = 'using periodic commit {} load csv with headers from "file:///{}" as line merge(no'.format(
+            commit_num, csv_file)
+        cypher = cypher_start
+        for label in labels:
+            cypher_label = ':`{}`'.format(label)
+            cypher = cypher + cypher_label
+        cypher = cypher + '{'
+        for property_name_in_neo4j, property_name_in_csv in property_name_in_neo4j_to_property_name_in_csv.items():
+            cypher_property = '`{}`: line["{}"] ,'.format(property_name_in_neo4j, property_name_in_csv)
+            cypher = cypher + cypher_property
+        if cypher[-1] == ',':
+            cypher = cypher[:-1]
+        cypher_end = '})'
+        cypher = cypher + cypher_end
+        return self.graph_accessor.graph.run(cypher)
+
+    def batch_import_relations_from_csv(self, commit_num, csv_file, match_nodes, relations):
+        '''
+        就是为了生成以下格式的cypher语句
+        using periodic commit 1000 load csv with headers from "file:///rela.csv" as line
+        match(p1:`person`:`entity`{`person id`:line["person id"]}),(p2:`good`:`entity`{`good id`:line["good id"]})
+        merge (p1)-[:`buy`]->(p2)
+
+        :param commit_num: how many nodes are submitted once during batch import
+        :param csv_file: batch imported CSV file name, the CSV file should be placed in the import folder
+        :param match_nodes: 一个 match_node的列表，每个match_node又是一个长度为三的列表，example:
+                        match_nodes = [[('person', 'entity'), 'person id', 'person id'],
+                                        [('good', 'entity'), 'good id', 'good id']]
+        :param relations: 一个关系的列表,每个关系又是长度为3的列表, example:
+                        relations = [[1, 'buy', 2] 代表前面第一个match_node buy 第二个match_node
+        :return:
+        '''
+        cypher_start = 'using periodic commit {} load csv with headers from "file:///{}" as line '.format(commit_num,
+                                                                                                csv_file)
+        cypher = cypher_start
+        index = 1
+        cypher_match = 'match'
+        cypher = cypher + cypher_match
+        for match_node in match_nodes:
+            cypher_match_start = '(p{}'.format(str(index))
+            cypher_match = cypher_match_start
+            for match_node_ in match_node[0]:
+                cypher_match_label = ':`{}`'.format(match_node_)
+                cypher_match = cypher_match + cypher_match_label
+            cypher_match_end = '{{`{}`:line["{}"]}}),'.format(match_node[1], match_node[2])
+            cypher_match = cypher_match + cypher_match_end
+            cypher = cypher + cypher_match
+            index = index + 1
+        if cypher[-1] == ',':
+            cypher = cypher[:-1]
+        for relation in relations:
+            cypher_merge = ' merge (p{})-[:`{}`]->(p{})'.format(relation[0], relation[1], relation[2])
+            cypher = cypher + cypher_merge
+        return self.graph_accessor.graph.run(cypher)
+
+    def batch_import_nodes_by_neo4j_admin(self, neo4j_admin_location, database_name, csv_file_2_labels):
+        '''
+        就是为了生成以下格式的命令
+        D:\neo4j\Soft\neo4j-community-4.3.5\bin\neo4j-admin import
+        --database=mydatabase --id-type=STRING
+        --nodes="person":"entity"=D:\pycharm\Code\libkg\data\person.csv
+        --nodes="good":"entity"=D:\pycharm\Code\libkg\data\good.csv
+        --ignore-extra-columns=True --multiline-fields=True
+
+        :param neo4j_admin_location: the location of neo4j_admin
+        :param database_name: the name of the neo4j database you want to generate
+        :param csv_file_2_labels: a dict
+        :return:
+        '''
+        commend_start = neo4j_admin_location + ' import --database={} --id-type=STRING'.format(database_name)
+        commend = commend_start
+        for csv_file, labels in csv_file_2_labels.items():
+            commend_node_start = ' --nodes='
+            commend_node = commend_node_start
+            for label in labels:
+                commend_node_label = '"{}":'.format(label)
+                commend_node = commend_node + commend_node_label
+            if commend_node[-1] == ':':
+                commend_node = commend_node[:-1]
+            commend_node_end = '={}'.format(csv_file)
+            commend_node = commend_node + commend_node_end
+            commend = commend + commend_node
+        commend_end = ' --ignore-extra-columns=True --multiline-fields=True'
+        commend = commend + commend_end
+        print(commend)
+        return self.excute_command(commend)
+
+    def excute_command(self, command):
+        '''
+        :param command: the command to execute
+        :return: o is success , 1 is defeat
+        '''
+        return os.system(command)
+
 
 
 class GraphDataExporter:

@@ -65,12 +65,23 @@ class MetadataGraphAccessor(GraphAccessor):
         return id_num
 
     def get_label_set(self):
-        pass
-        # todo:
+        '''
+        get the set of the label in the graph
+        :return: the set of the label in the graph
+        '''
+        query = 'CALL db.labels() YIELD label'
+        result = (i['label'] for i in self.graph.run(query).data())
+        return result
+
 
     def get_relation_set(self):
-        pass
-        # todo:
+        '''
+        get the set of the relation in the graph
+        :return: the set of the relation in the graph
+        '''
+        query = 'CALL db.relationshipTypes'
+        result = (i['relationshipType'] for i in self.graph.run(query).data())
+        return result
 
     def expand_node(self, node_id, limit=40):
         """

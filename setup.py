@@ -16,7 +16,7 @@ requirements = [
     'numpy>=1.18',
     'scipy>=1.4.0',
     'smart_open',
-    'py2neo'
+    'py2neo==4.3.0'
 ]
 
 setup_requirements = ['pytest-runner', ]
@@ -54,6 +54,6 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/FudanSELab/kgdt',
-    version='0.3.1',
+    version='0.3.2',
     zip_safe=False,
 )

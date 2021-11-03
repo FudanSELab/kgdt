@@ -10,7 +10,7 @@
 ------------------------------------------
 @Description:
 """
-
+import json
 from copy import deepcopy
 
 from networkx import MultiDiGraph
@@ -353,7 +353,6 @@ class GraphData(SaveLoad):
         with unique property value ( property value is got by primary_property_name ) will be added to the GraphData.
                 :return:-1, means that adding node json fail. otherwise, return the id of the newly added node
         """
-
         if primary_property_name:
             if primary_property_name not in node_properties:
                 print("node json must have a primary_property_name ( %r ) in properties " % primary_property_name)
@@ -386,6 +385,61 @@ class GraphData(SaveLoad):
         self.index_collection.add_node(node_id=node_id,
                                        node_properties=new_node_json[GraphData.DEFAULT_KEY_NODE_PROPERTIES])
         return node_id
+
+    def update_node_property_by_node_id(self, node_id, node_properties):
+        if not node_id in list(self.get_node_ids()):
+            return self.UNASSIGNED_NODE_ID
+
+        node_json = self.get_node_info_dict(node_id)
+        update_node_id = node_json[self.DEFAULT_KEY_NODE_ID]
+        update_node_properties = node_json[self.DEFAULT_KEY_NODE_PROPERTIES]
+        update_node_labels = node_json[self.DEFAULT_KEY_NODE_LABELS]
+        for k, v in node_properties.items():
+            update_node_properties[k] = v
+        update_node_json =  {
+            self.DEFAULT_KEY_NODE_ID: update_node_id,
+            self.DEFAULT_KEY_NODE_PROPERTIES: update_node_properties,
+            self.DEFAULT_KEY_NODE_LABELS: update_node_labels
+        }
+        self.graph.add_node(update_node_id, **update_node_json)
+        self.index_collection.add_node(node_id=update_node_id,
+                                       node_properties=update_node_properties)
+        return update_node_id
+
+    def update_node_by_node_id(self, node_id, node_labels, node_properties):
+        if not node_id in list(self.get_node_ids()):
+            return self.UNASSIGNED_NODE_ID
+
+        node_json = self.get_node_info_dict(node_id)
+        update_node_id = node_json[self.DEFAULT_KEY_NODE_ID]
+        update_node_properties = node_json[self.DEFAULT_KEY_NODE_PROPERTIES]
+        update_node_labels = node_json[self.DEFAULT_KEY_NODE_LABELS]
+        for k, v in node_properties.items():
+            update_node_properties[k] = v
+        for label in node_labels:
+            update_node_labels.add(label)
+        update_node_json = {
+            self.DEFAULT_KEY_NODE_ID: update_node_id,
+            self.DEFAULT_KEY_NODE_PROPERTIES: update_node_properties,
+            self.DEFAULT_KEY_NODE_LABELS: update_node_labels
+        }
+        self.graph.add_node(update_node_id, **update_node_json)
+        self.add_labels(*update_node_labels)
+        for label in update_node_labels:
+            self.label_to_ids_map[label].add(node_id)
+        self.index_collection.add_node(node_id=update_node_id,
+                                       node_properties=update_node_properties)
+        return update_node_id
+
+
+    def update_node_property_value_by_node_id(self, node_id, node_property_name, node_proprty_value):
+        if not node_id in list(self.get_node_ids()):
+            return self.UNASSIGNED_NODE_ID
+        if node_property_name == "":
+            return node_id
+        node_property = {node_property_name: node_proprty_value}
+        return self.update_node_property_by_node_id(node_id, node_property)
+
 
     def remove_node(self, node_id):
         if node_id not in self.graph.nodes:
@@ -723,6 +777,9 @@ class GraphData(SaveLoad):
     def exist_relation(self, startId, relationType, endId):
         return self.graph.has_edge(startId, endId, relationType)
 
+    def exist_any_relation(self, startId, endId):
+        return self.graph.has_edge(startId, endId)
+
     def get_relations(self, start_id=None, relation_type=None, end_id=None):
         candidates = None
         if start_id is not None:
@@ -738,6 +795,12 @@ class GraphData(SaveLoad):
         if relation_type is not None:
             candidates = set(filter(lambda r: r[1] == relation_type, candidates))
         return candidates
+
+    def get_all_relations(self, id_1, id_2):
+        result = set([])
+        result = result | self.get_relations(start_id=id_1, end_id=id_2)
+        result = result | self.get_relations(start_id=id_2, end_id=id_1)
+        return result
 
     def get_edge_extra_info(self, start_id, end_id, relation_name, extra_key):
         relation_dict = self.graph.get_edge_data(start_id, end_id)

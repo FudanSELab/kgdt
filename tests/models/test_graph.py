@@ -148,3 +148,37 @@ class TestGraphData(TestCase):
         graph_data: GraphData = GraphData.load("test.graph")
         self.assertEqual(graph_data.get_node_num(), 2)
 
+
+    def test_update_node(self):
+        graph_data = GraphData()
+        graph_data.add_node({"method","entity"},{"qualified_name": "ArrayList.remove", "version": "1.0"})
+        graph_data.update_node_property_by_node_id(1, {"qualified_name": "ArrayList.remove", "version": "2.0", "parameter_num": 1})
+        new_property = {"qualified_name": "ArrayList.remove", "version": "2.0", "parameter_num": 1}
+        new_label = {"method","entity"}
+        self.assertEqual(graph_data.get_node_info_dict(1)[GraphData.DEFAULT_KEY_NODE_PROPERTIES], new_property)
+        self.assertEqual(graph_data.get_node_info_dict(1)[GraphData.DEFAULT_KEY_NODE_LABELS], new_label)
+
+        graph_data.update_node_property_value_by_node_id(1, "qualified_name", "ArrayList.add")
+        new_property = {"qualified_name": "ArrayList.add", "version": "2.0", "parameter_num": 1}
+        new_label = {"method", "entity"}
+        self.assertEqual(graph_data.get_node_info_dict(1)[GraphData.DEFAULT_KEY_NODE_PROPERTIES], new_property)
+        self.assertEqual(graph_data.get_node_info_dict(1)[GraphData.DEFAULT_KEY_NODE_LABELS], new_label)
+
+        graph_data.update_node_by_node_id(1, {"class", "entity"}, {"qualified_name": "ArrayList.add", "version": "2.0", "parameter_num": 2})
+        new_property = {"qualified_name": "ArrayList.add", "version": "2.0", "parameter_num": 2}
+        new_label = {"method", "entity", "class"}
+        self.assertEqual(graph_data.get_node_info_dict(1)[GraphData.DEFAULT_KEY_NODE_PROPERTIES], new_property)
+        self.assertEqual(graph_data.get_node_info_dict(1)[GraphData.DEFAULT_KEY_NODE_LABELS], new_label)
+
+
+    def test_exist_relation(self):
+        graph_data = GraphData()
+        graph_data.add_node({"method", "entity"}, {"qualified_name": "ArrayList.remove", "version": "1.0"})
+        graph_data.add_node({"method", "entity"}, {"qualified_name": "LinkedList.add", "version": "1.0"})
+        graph_data.add_node({"class", "entity"}, {"qualified_name": "ArrayList", "version": "1.0"})
+        graph_data.add_relation(3, "hasMethod", 1)
+        graph_data.add_relation(1, "belongTo", 3)
+        self.assertEqual(graph_data.exist_any_relation(3, 1), True)
+        self.assertEqual(graph_data.exist_any_relation(2, 1), False)
+        new_relations = {(3, 'hasMethod', 1), (1, 'belongTo', 3)}
+        self.assertEqual(graph_data.get_all_relations(1, 3), new_relations)
