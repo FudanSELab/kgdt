@@ -432,6 +432,15 @@ class GraphData(SaveLoad):
         return update_node_id
 
 
+    def update_node_property_value_by_node_id(self, node_id, node_property_name, node_proprty_value):
+        if not node_id in list(self.get_node_ids()):
+            return self.UNASSIGNED_NODE_ID
+        if node_property_name == "":
+            return node_id
+        node_property = {node_property_name: node_proprty_value}
+        return self.update_node_property_by_node_id(node_id, node_property)
+
+
     def remove_node(self, node_id):
         if node_id not in self.graph.nodes:
             return None
