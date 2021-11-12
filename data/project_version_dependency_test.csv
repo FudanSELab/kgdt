@@ -1,0 +1,18 @@
+project version dependency ID,project version platform,project name,project ID,project version number,project version ID,project version dependency name,project version dependency platform,project version dependency kind,optional dependency,project version dependency requirements,dependency project ID
+8737,Dub,a4g,197,0.1.0,2,a4g:client,Dub,runtime,false,*,1
+8738,Dub,a4g,197,0.1.0,2,a4g:server,Dub,runtime,false,*,1
+8743,Dub,ae,199,1.0.0,6,openssl,Dub,runtime,false,>=1.1.3+1.0.1g,493
+8744,Dub,ae,199,1.0.1,7,openssl,Dub,runtime,true,>=1.1.3+1.0.1g,493
+8752,Dub,anchovy,203,0.2.4,21,anchovy:core,Dub,runtime,false,~master,1
+8753,Dub,anchovy,203,0.2.4,21,anchovy:graphics,Dub,runtime,false,~master,1
+8754,Dub,anchovy,203,0.2.4,21,anchovy:gui,Dub,runtime,false,~master,1
+8755,Dub,anchovy,203,0.2.4,21,anchovy:utils,Dub,runtime,false,~master,1
+8756,Dub,anchovy,203,0.3.0,22,anchovy:core,Dub,runtime,false,~master,1
+8757,Dub,anchovy,203,0.3.0,22,anchovy:graphics,Dub,runtime,false,~master,1
+8758,Dub,anchovy,203,0.3.0,22,anchovy:gui,Dub,runtime,false,~master,1
+8759,Dub,anchovy,203,0.3.0,22,anchovy:utils,Dub,runtime,false,~master,1
+8760,Dub,anchovy,203,0.4.0,23,anchovy:core,Dub,runtime,false,~master,1
+8761,Dub,anchovy,203,0.4.0,23,anchovy:graphics,Dub,runtime,false,~master,1
+8762,Dub,anchovy,203,0.4.0,23,anchovy:gui,Dub,runtime,false,~master,1
+8763,Dub,anchovy,203,0.4.0,23,anchovy:utils,Dub,runtime,false,~master,1
+8764,Dub,anchovy,203,0.5.0,24,anchovy:core,Dub,runtime,false,~master,1

@@ -16,7 +16,8 @@ requirements = [
     'numpy>=1.18',
     'scipy>=1.4.0',
     'smart_open',
-    'py2neo==4.3.0'
+    'py2neo==4.3.0',
+    'pandas'
 ]
 
 setup_requirements = ['pytest-runner', ]
