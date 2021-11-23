@@ -322,72 +322,64 @@ class CSVGraphdataTranformer():
         '''
         csvfilename2label = {}
         csvfilename2ids = {}
-        csvfilename2property_name={}
+        csvfilename2property_name = {}
 
         ids = graph.get_node_ids()
         for id in ids:
             node = graph.get_node_info_dict(id)
             labels = node.get(GraphData.DEFAULT_KEY_NODE_LABELS)
             property_names = node.get(GraphData.DEFAULT_KEY_NODE_PROPERTIES).keys()
-            csvfilename = '-'.join(node.get(GraphData.DEFAULT_KEY_NODE_LABELS))
-            flag = True
-            for k, v in csvfilename2label.items():
-                if v == labels:
-                    flag = False
-                    break
-            if flag:
+            csvfilename = '-'.join(labels)
+            if labels not in csvfilename2label.values():
                 csvfilename2label[csvfilename] = labels
                 csvfilename2ids[csvfilename] = set([])
                 csvfilename2property_name[csvfilename] = set([])
-                csvfilename2ids[csvfilename].add(id)
-                for property_name in property_names:
-                    csvfilename2property_name[csvfilename].add(property_name)
-            else:
-                csvfilename2ids[csvfilename].add(id)
-                for property_name in property_names:
-                    csvfilename2property_name[csvfilename].add(property_name)
+            csvfilename2ids[csvfilename].add(id)
+            for property_name in property_names:
+                csvfilename2property_name[csvfilename].add(property_name)
         for k, v in csvfilename2property_name.items():
             csvfilename2property_name[k] = list(v)
         node_count = 0
         for csvfilename, ids in csvfilename2ids.items():
-            csvfile = open(os.path.join(csv_folder, '{}.{}'.format(csvfilename, 'csv')), 'w', newline='',
-                           encoding='utf-8')
-            writer = csv.writer(csvfile, delimiter=',')
-            first_node = True
-            for id in ids:
-                node = graph.get_node_info_dict(id)
-                if node:
-                    node_dic = {}
-                    node_properties = node.get(GraphData.DEFAULT_KEY_NODE_PROPERTIES)
-                    node_dic[csv_id] = node.get(GraphData.DEFAULT_KEY_NODE_ID)
-                    node_dic[csv_labels] = node.get(GraphData.DEFAULT_KEY_NODE_LABELS)
-                    for property_name in csvfilename2property_name[csvfilename]:
-                        node_dic[property_name] = node_properties.get(property_name)
-                    if first_node:
-                        writer.writerow(node_dic)
-                    writer.writerow(node_dic.values())
-                    node_count = node_count + 1
-                    first_node = False
+            with open(os.path.join(csv_folder, '{}.{}'.format(csvfilename, 'csv')), 'w', newline='',
+                           encoding='utf-8') as csvfile:
+                writer = csv.writer(csvfile, delimiter=',')
+                first_node = True
+                for id in ids:
+                    node = graph.get_node_info_dict(id)
+                    if node:
+                        node_dic = {}
+                        node_properties = node.get(GraphData.DEFAULT_KEY_NODE_PROPERTIES)
+                        node_dic[csv_id] = node.get(GraphData.DEFAULT_KEY_NODE_ID)
+                        node_dic[csv_labels] = node.get(GraphData.DEFAULT_KEY_NODE_LABELS)
+                        for property_name in csvfilename2property_name[csvfilename]:
+                            node_dic[property_name] = node_properties.get(property_name)
+                        if first_node:
+                            writer.writerow(node_dic)
+                        writer.writerow(node_dic.values())
+                        node_count = node_count + 1
+                        first_node = False
         print("一共导入csv的节点个数:   ", node_count)
         relation_count = 0
         relation_pairs = graph.get_relation_pairs()
-        csvfile = open(os.path.join(csv_folder, '{}.{}'.format('relations', 'csv')), 'w', newline='',
-                       encoding='utf-8')
-        writer = csv.writer(csvfile, delimiter=',')
-        first_relation = True
-        for relation_pair in relation_pairs:
-            relations = graph.get_relations(start_id=relation_pair[0], end_id=relation_pair[1])
-            for relation in relations:
-                relation_dic = {}
-                relation_dic[GraphData.DEFAULT_KEY_RELATION_START_ID] = int(relation[0])
-                relation_dic[GraphData.DEFAULT_KEY_RELATION_TYPE] = relation[1]
-                relation_dic[GraphData.DEFAULT_KEY_RELATION_END_ID] = int(relation[2])
-                if first_relation:
-                    writer.writerow(relation_dic)
-                    first_relation = False
-                writer.writerow(relation_dic.values())
-                relation_count = relation_count + 1
+        with open(os.path.join(csv_folder, '{}.{}'.format('relations', 'csv')), 'w', newline='',
+                       encoding='utf-8') as csvfile:
+            writer = csv.writer(csvfile, delimiter=',')
+            first_relation = True
+            for relation_pair in relation_pairs:
+                relations = graph.get_relations(start_id=relation_pair[0], end_id=relation_pair[1])
+                for relation in relations:
+                    relation_dic = {}
+                    relation_dic[GraphData.DEFAULT_KEY_RELATION_START_ID] = int(relation[0])
+                    relation_dic[GraphData.DEFAULT_KEY_RELATION_TYPE] = relation[1]
+                    relation_dic[GraphData.DEFAULT_KEY_RELATION_END_ID] = int(relation[2])
+                    if first_relation:
+                        writer.writerow(relation_dic)
+                        first_relation = False
+                    writer.writerow(relation_dic.values())
+                    relation_count = relation_count + 1
         print("一共导入csv的关系个数:   ", relation_count)
+        print("一共生成", len(csvfilename2label), "个csv节点文件和", str(1), "个csv关系文件" )
 
     def node_csv2graphdata(self, file, graph, csv_id=GraphData.DEFAULT_KEY_NODE_ID, csv_labels=GraphData.DEFAULT_KEY_NODE_LABELS):
         '''
@@ -398,7 +390,7 @@ class CSVGraphdataTranformer():
         :return: 导入节点后的graphdata
         '''
 
-        if graph == None:
+        if not graph:
             graph = GraphData()
         count = 0
         with open(file, 'r', encoding="utf-8") as csvfile:
@@ -410,24 +402,17 @@ class CSVGraphdataTranformer():
                 node_dic = {}
                 for row_k, row_v in row.items():
                     if row_k == csv_id:
-                        node_id = int(row_v)
+                        node_id = eval(row_v)
                         continue
                     if row_k == csv_labels:
                         node_labels = eval(row_v)
                         continue
                     if row_v == '':
                         continue
-                    if row_v[0] == '[':
-                        try:
-                            row_v_list = eval(row_v)
-                            node_dic[row_k] = row_v_list
-                        except BaseException:
-                            node_dic[row_k] = row_v
-                        continue
                     try:
-                        row_v_int = int(row_v)
-                        node_dic[row_k] = row_v_int
-                    except:
+                        row_v_ = eval(row_v)
+                        node_dic[row_k] = row_v_
+                    except BaseException:
                         node_dic[row_k] = row_v
                 result = graph.add_node(node_labels, node_dic, node_id)
                 if result != -1:
@@ -448,7 +433,7 @@ class CSVGraphdataTranformer():
         :return: 导入完成的graphdata
         '''
         count = 0
-        if graph == None:
+        if not graph:
             return GraphData()
         with open(file, 'r', encoding="utf-8") as csvfile:
             reader = csv.DictReader(csvfile)
@@ -456,7 +441,7 @@ class CSVGraphdataTranformer():
                 row = dict(row)
                 if row[start_name] != '' and row[relation_type_name] != '' and row[end_name] != '':
                     result = graph.add_relation(int(row[start_name]), row[relation_type_name], int(row[end_name]))
-                    if result == True:
+                    if result:
                         count = count + 1
         print("从", file, "一共导入graphdata关系个数:   ", count)
         return graph
