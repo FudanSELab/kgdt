@@ -457,6 +457,13 @@ class GraphData(SaveLoad):
 
         return node_json, out_relations, in_relations
 
+    def remove_all_nodes(self):
+        ids = self.get_node_ids()
+        for id in ids:
+            self.remove_node(id)
+        return True
+
+
     def merge_node(self, node_labels, node_properties, primary_property_name):
         """
         merge a node json to the graph, that is if we can't not find the node with primary_property_value match the given node.
@@ -773,6 +780,16 @@ class GraphData(SaveLoad):
 
         self.graph.remove_edge(startId, endId, relationType)
         return True
+
+    def remove_all_relations(self):
+        relation_pairs = self.get_relation_pairs()
+        for relation_pair in relation_pairs:
+            relations = self.get_relations(start_id=relation_pair[0], end_id=relation_pair[1])
+            for relation in relations:
+                self.remove_relation(relation[0], relation[1], relation[2])
+        return True
+
+
 
     def exist_relation(self, startId, relationType, endId):
         return self.graph.has_edge(startId, endId, relationType)
