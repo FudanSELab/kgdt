@@ -312,7 +312,7 @@ class CSVGraphdataTranformer():
     def __init__(self):
         pass
 
-    def graphdata2csv(self, csv_folder, graph, csv_id=GraphData.DEFAULT_KEY_NODE_ID, csv_labels=GraphData.DEFAULT_KEY_NODE_LABELS):
+    def graphdata2csv(self, csv_folder, graph: GraphData, csv_id=GraphData.DEFAULT_KEY_NODE_ID, csv_labels=GraphData.DEFAULT_KEY_NODE_LABELS):
         '''
         :param csv_folder: 存放生产csv文件的文件夹路径
         :param graph: 将要导出的graphdata
@@ -381,7 +381,7 @@ class CSVGraphdataTranformer():
         print("一共导入csv的关系个数:   ", relation_count)
         print("一共生成", len(csvfilename2label), "个csv节点文件和", str(1), "个csv关系文件" )
 
-    def node_csv2graphdata(self, file, graph, csv_id=GraphData.DEFAULT_KEY_NODE_ID, csv_labels=GraphData.DEFAULT_KEY_NODE_LABELS):
+    def node_csv2graphdata(self, file, graph: GraphData=None, csv_id=GraphData.DEFAULT_KEY_NODE_ID, csv_labels=GraphData.DEFAULT_KEY_NODE_LABELS):
         '''
         :param file:  节点csv文件的全路径
         :param graph: 将要导入csv的graph，将要导入的graphdata，没有传参则新建
@@ -417,11 +417,13 @@ class CSVGraphdataTranformer():
                 result = graph.add_node(node_labels, node_dic, node_id)
                 if result != -1:
                     count = count + 1
+            del reader
+        del csvfile
         print("从", file, "一共导入graphdata节点个数:   ", count)
         return graph
 
 
-    def relation_csv2graphdata(self, file, graph=None, start_name=GraphData.DEFAULT_KEY_RELATION_START_ID,
+    def relation_csv2graphdata(self, file, graph: GraphData=None, start_name=GraphData.DEFAULT_KEY_RELATION_START_ID,
                                relation_type_name=GraphData.DEFAULT_KEY_RELATION_TYPE, end_name=GraphData.DEFAULT_KEY_RELATION_END_ID):
         '''
 

@@ -17,6 +17,9 @@ import pandas as pd
 from kgdt.neo4j.factory import GraphInstanceFactory
 from kgdt.neo4j.accessor.base import GraphAccessor
 from kgdt.transfer.neo4j import BatchNeo4jImporter
+from kgdt.models.graph import GraphData
+from kgdt.transfer.neo4j import CSVGraphdataTranformer
+
 
 class TestBatchNeo4jImporter(TestCase):
 
@@ -77,3 +80,56 @@ class TestBatchNeo4jImporter(TestCase):
         importor.batch_import_relations_from_csv(1000, 'project_version_dependency_test.csv', match_nodes, relations)
         nodes = graph.run("match (n) return n")
         print(nodes.data())
+
+
+class TestCSVGraphdataTranformer(TestCase):
+
+
+    def test_graphdata2csv(self):
+        '''
+        这样就将graphdata中的数据导入到我们指定的csv文件夹中，会有多个节点csv文件
+        '''
+        '''
+        datadir = os.path.join(ROOT_DIR, 'data')
+        csvdir = os.path.join(ROOT_DIR, 'output')
+        graph = GraphData.load(os.path.join(datadir, 'graph.graph'))
+        transfer = CSVGraphdataTranformer()
+        transfer.graphdata2csv(csvdir, graph)
+        '''
+        pass
+
+
+    def test_node_csv2graphdata(self):
+        '''
+        导入节点csv文件测试
+        '''
+        '''
+        datadir = os.path.join(ROOT_DIR, 'data')
+        csvdir = os.path.join(ROOT_DIR, 'output')
+        files = os.listdir(csvdir)
+        transfer = CSVGraphdataTranformer()
+        graph_new = GraphData()
+        for file in files:
+            if file != 'relations.csv':
+                graph_new = transfer.node_csv2graphdata(os.path.join(csvdir, file), graph_new)
+        graph_new.save(os.path.join(datadir, 'graph_new.graph'))
+        '''
+        pass
+
+
+    def test_relation_csv2graphdata(self):
+        '''
+        导入关系csv文件测试
+        '''
+        '''
+        datadir = os.path.join(ROOT_DIR, 'data')
+        csvdir = os.path.join(ROOT_DIR, 'output')
+        files = os.listdir(csvdir)
+        transfer = CSVGraphdataTranformer()
+        graph_new = GraphData()
+        for file in files:
+            if file == 'relations.csv':
+                graph_new = transfer.node_csv2graphdata(os.path.join(csvdir, file), graph_new)
+        graph_new.save(os.path.join(datadir, 'graph_new.graph'))
+        '''
+        pass
