@@ -11,6 +11,8 @@
 @Description:
 """
 import traceback
+import csv
+
 
 from kgdt.models.graph import GraphData
 from kgdt.neo4j.accessor.base import GraphAccessor
@@ -301,3 +303,151 @@ class GraphDataExporter:
         graph_data.set_relations(relations=relations)
 
         return graph_data
+
+
+class CSVGraphdataTranformer():
+    '''
+    csv文件和graphdata互相转化
+    '''
+    def __init__(self):
+        pass
+
+    def graphdata2csv(self, csv_folder, graph, csv_id=GraphData.DEFAULT_KEY_NODE_ID, csv_labels=GraphData.DEFAULT_KEY_NODE_LABELS):
+        '''
+        :param csv_folder: 存放生产csv文件的文件夹路径
+        :param graph: 将要导出的graphdata
+        :param csv_id: 生成的csv文件id列的列名，默认是id
+        :param csv_labels: 生成的csv文件labels列的列名，默认是labels
+        :return: 无返回
+        '''
+        csvfilename2label = {}
+        csvfilename2ids = {}
+        csvfilename2property_name = {}
+
+        ids = graph.get_node_ids()
+        for id in ids:
+            node = graph.get_node_info_dict(id)
+            labels = node.get(GraphData.DEFAULT_KEY_NODE_LABELS)
+            property_names = node.get(GraphData.DEFAULT_KEY_NODE_PROPERTIES).keys()
+            csvfilename = '-'.join(labels)
+            if labels not in csvfilename2label.values():
+                csvfilename2label[csvfilename] = labels
+                csvfilename2ids[csvfilename] = set([])
+                csvfilename2property_name[csvfilename] = set([])
+            csvfilename2ids[csvfilename].add(id)
+            for property_name in property_names:
+                csvfilename2property_name[csvfilename].add(property_name)
+        for k, v in csvfilename2property_name.items():
+            csvfilename2property_name[k] = list(v)
+        node_count = 0
+        for csvfilename, ids in csvfilename2ids.items():
+            with open(os.path.join(csv_folder, '{}.{}'.format(csvfilename, 'csv')), 'w', newline='',
+                           encoding='utf-8') as csvfile:
+                writer = csv.writer(csvfile, delimiter=',')
+                first_node = True
+                for id in ids:
+                    node = graph.get_node_info_dict(id)
+                    if node:
+                        node_dic = {}
+                        node_properties = node.get(GraphData.DEFAULT_KEY_NODE_PROPERTIES)
+                        node_dic[csv_id] = node.get(GraphData.DEFAULT_KEY_NODE_ID)
+                        node_dic[csv_labels] = node.get(GraphData.DEFAULT_KEY_NODE_LABELS)
+                        for property_name in csvfilename2property_name[csvfilename]:
+                            node_dic[property_name] = node_properties.get(property_name)
+                        if first_node:
+                            writer.writerow(node_dic)
+                        writer.writerow(node_dic.values())
+                        node_count = node_count + 1
+                        first_node = False
+        print("一共导入csv的节点个数:   ", node_count)
+        relation_count = 0
+        relation_pairs = graph.get_relation_pairs()
+        with open(os.path.join(csv_folder, '{}.{}'.format('relations', 'csv')), 'w', newline='',
+                       encoding='utf-8') as csvfile:
+            writer = csv.writer(csvfile, delimiter=',')
+            first_relation = True
+            for relation_pair in relation_pairs:
+                relations = graph.get_relations(start_id=relation_pair[0], end_id=relation_pair[1])
+                for relation in relations:
+                    relation_dic = {}
+                    relation_dic[GraphData.DEFAULT_KEY_RELATION_START_ID] = int(relation[0])
+                    relation_dic[GraphData.DEFAULT_KEY_RELATION_TYPE] = relation[1]
+                    relation_dic[GraphData.DEFAULT_KEY_RELATION_END_ID] = int(relation[2])
+                    if first_relation:
+                        writer.writerow(relation_dic)
+                        first_relation = False
+                    writer.writerow(relation_dic.values())
+                    relation_count = relation_count + 1
+        print("一共导入csv的关系个数:   ", relation_count)
+        print("一共生成", len(csvfilename2label), "个csv节点文件和", str(1), "个csv关系文件" )
+
+    def node_csv2graphdata(self, file, graph: GraphData = None, csv_id=GraphData.DEFAULT_KEY_NODE_ID, csv_labels =GraphData.DEFAULT_KEY_NODE_LABELS):
+        '''
+        :param file:  节点csv文件的全路径
+        :param graph: 将要导入csv的graph，将要导入的graphdata，没有传参则新建
+        :param csv_id: csv文件id所在列的列名，默认是id
+        :param csv_labels: csv文件labels所在列的列名，默认是labels
+        :return: 导入节点后的graphdata
+        '''
+
+        if not graph:
+            graph = GraphData()
+        count = 0
+        with open(file, 'r', encoding="utf-8") as csvfile:
+            reader = csv.DictReader(csvfile)
+            for row in reader:
+                row = dict(row)
+                node_id = None
+                node_labels = set([])
+                node_dic = {}
+                for row_k, row_v in row.items():
+                    if row_k == csv_id:
+                        node_id = eval(row_v)
+                        continue
+                    if row_k == csv_labels:
+                        node_labels = eval(row_v)
+                        continue
+                    if row_v == '':
+                        continue
+                    if row_v[0] == '[':
+                        try:
+                            row_v_list = eval(row_v)
+                            node_dic[row_k] = row_v_list
+                        except BaseException:
+                            node_dic[row_k] = row_v
+                        continue
+                    try:
+                        row_v_int = int(row_v)
+                        node_dic[row_k] = row_v_int
+                    except BaseException:
+                        node_dic[row_k] = row_v
+                result = graph.add_node(node_labels, node_dic, node_id)
+                if result != -1:
+                    count = count + 1
+        print("从", file, "一共导入graphdata节点个数:   ", count)
+        return graph
+
+
+    def relation_csv2graphdata(self, file, graph=None, start_name=GraphData.DEFAULT_KEY_RELATION_START_ID,
+                               relation_type_name=GraphData.DEFAULT_KEY_RELATION_TYPE, end_name=GraphData.DEFAULT_KEY_RELATION_END_ID):
+        '''
+        :param file: 关系csv文件的全路径
+        :param graph: 将要导入的graphdata，没有传参则新建
+        :param start_name: csv文件关系开始点ID那一列的列名，默认是startId
+        :param relation_type_name: csv文件关系类型那一列的列名，默认是 relationType
+        :param end_name: csv文件关系结束点ID那一列的列列名，默认是endId
+        :return: 导入完成的graphdata
+        '''
+        count = 0
+        if not graph:
+            return GraphData()
+        with open(file, 'r', encoding="utf-8") as csvfile:
+            reader = csv.DictReader(csvfile)
+            for row in reader:
+                row = dict(row)
+                if row[start_name] != '' and row[relation_type_name] != '' and row[end_name] != '':
+                    result = graph.add_relation(int(row[start_name]), row[relation_type_name], int(row[end_name]))
+                    if result:
+                        count = count + 1
+        print("从", file, "一共导入graphdata关系个数:   ", count)
+        return graph
