@@ -458,7 +458,7 @@ class CSVGraphdataTranformer():
         return graph
 
     @staticmethod
-    def relation_csv2graphdata(self, file, graph=None, start_name=GraphData.DEFAULT_KEY_RELATION_START_ID,
+    def relation_csv2graphdata(file, graph=None, start_name=GraphData.DEFAULT_KEY_RELATION_START_ID,
                                relation_type_name=GraphData.DEFAULT_KEY_RELATION_TYPE, end_name=GraphData.DEFAULT_KEY_RELATION_END_ID):
         '''
         :param file: 关系csv文件的全路径
