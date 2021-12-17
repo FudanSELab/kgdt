@@ -11,7 +11,6 @@ with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
 requirements = [
-    'Click>=7.0',
     'networkx>=2.4',
     'numpy>=1.18',
     'scipy>=1.4.0',
