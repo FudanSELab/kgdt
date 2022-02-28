@@ -311,7 +311,9 @@ class CSVGraphdataTranformer():
     '''
 
     @staticmethod
-    def graphdata2csv(csv_folder, graph: GraphData, node_file_id=GraphData.DEFAULT_KEY_NODE_ID,
+    def graphdata2csv(csv_folder, graph: GraphData,
+                      node_file_id=GraphData.DEFAULT_KEY_NODE_ID,
+                      node_id_value_prefix = '',
                       csv_labels=GraphData.DEFAULT_KEY_NODE_LABELS,
                       relation_file_start_id=GraphData.DEFAULT_KEY_RELATION_START_ID,
                       relation_file_end_id=GraphData.DEFAULT_KEY_RELATION_END_ID,
@@ -358,7 +360,7 @@ class CSVGraphdataTranformer():
                     if node:
                         node_dic = {}
                         node_properties = node.get(GraphData.DEFAULT_KEY_NODE_PROPERTIES)
-                        node_dic[node_file_id] = node.get(GraphData.DEFAULT_KEY_NODE_ID)
+                        node_dic[node_file_id] = node_id_value_prefix + "_" + str(node.get(GraphData.DEFAULT_KEY_NODE_ID))
                         node_dic[csv_labels] = node.get(GraphData.DEFAULT_KEY_NODE_LABELS)
                         for property_name in csvfilename2property_name[csvfilename]:
                             node_dic[property_name] = node_properties.get(property_name)
@@ -382,9 +384,9 @@ class CSVGraphdataTranformer():
                     relation_pairs = graph.get_relations(relation_type=relation_type)
                     for relation_pair in relation_pairs:
                         relation_dic = {}
-                        relation_dic[relation_file_start_id] = int(relation_pair[0])
+                        relation_dic[relation_file_start_id] = node_id_value_prefix + "_" + str(relation_pair[0])
                         relation_dic[relation_file_type] = relation_pair[1]
-                        relation_dic[relation_file_end_id] = int(relation_pair[2])
+                        relation_dic[relation_file_end_id] = node_id_value_prefix + "_" + str(relation_pair[2])
                         if first_relation:
                             writer.writerow(relation_dic)
                             first_relation = False
@@ -404,9 +406,9 @@ class CSVGraphdataTranformer():
                     first_relation = True
                     for relation_pair in relation_pairs:
                         relation_dic = {}
-                        relation_dic[GraphData.DEFAULT_KEY_RELATION_START_ID] = int(relation_pair[0])
+                        relation_dic[GraphData.DEFAULT_KEY_RELATION_START_ID] = node_id_value_prefix + "_" + str(relation_pair[0])
                         relation_dic[GraphData.DEFAULT_KEY_RELATION_TYPE] = relation_pair[1]
-                        relation_dic[GraphData.DEFAULT_KEY_RELATION_END_ID] = int(relation_pair[2])
+                        relation_dic[GraphData.DEFAULT_KEY_RELATION_END_ID] = node_id_value_prefix + "_" + str(relation_pair[2])
                         if first_relation:
                             writer.writerow(relation_dic)
                             first_relation = False
