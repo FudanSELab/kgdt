@@ -35,3 +35,7 @@ This package was created with Cookiecutter_ and the `audreyr/cookiecutter-pypack
 
 .. _Cookiecutter: https://github.com/audreyr/cookiecutter
 .. _`audreyr/cookiecutter-pypackage`: https://github.com/audreyr/cookiecutter-pypackage
+
+Tips
+-------
+* 如果遇到安装失败，可能是有一个依赖库pytest-runner自动获取不到 要自己手动pip一下就好了
