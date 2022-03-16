@@ -39,3 +39,4 @@ This package was created with Cookiecutter_ and the `audreyr/cookiecutter-pypack
 Tips
 -------
 * 如果遇到安装失败，可能是有一个依赖库pytest-runner自动获取不到 要自己手动pip一下就好了
+    * TODO - 这个是因为依赖有问题，下次修改一下setup.py 的库依赖，将这个没有必要的依赖删除
