@@ -7,4 +7,4 @@ if not logger.handlers:  # To ensure reload() doesn't add another one
 
 __author__ = """Software Engineering Laboratory of Fudan University"""
 __email__ = 'lmwtclmwtc@outlook.com'
-__version__ = '0.4.3'
+__version__ = '0.4.6'

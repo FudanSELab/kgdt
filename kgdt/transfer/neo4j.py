@@ -182,7 +182,7 @@ class BatchNeo4jImporter:
         :param property_name_in_neo4j_to_property_name_in_csv: a dict
         :return:
         '''
-        cypher_start = 'using periodic commit {} load csv with headers from "file:///{}" as line merge(no'.format(
+        cypher_start = 'using periodic commit {} load csv with headers from "file:///{}" as line create(no'.format(
             commit_num, csv_file)
         cypher = cypher_start
         for label in labels:
@@ -311,12 +311,16 @@ class CSVGraphdataTranformer():
     '''
 
     @staticmethod
-    def graphdata2csv(csv_folder, graph: GraphData, node_file_id=GraphData.DEFAULT_KEY_NODE_ID,
+    def graphdata2csv(csv_folder, graph: GraphData,
+                      node_file_id=GraphData.DEFAULT_KEY_NODE_ID,
+                      node_id_value_prefix = '',
                       csv_labels=GraphData.DEFAULT_KEY_NODE_LABELS,
                       relation_file_start_id=GraphData.DEFAULT_KEY_RELATION_START_ID,
                       relation_file_end_id=GraphData.DEFAULT_KEY_RELATION_END_ID,
                       relation_file_type=GraphData.DEFAULT_KEY_RELATION_TYPE,
-                      only_one_relation_file=True):
+                      only_one_relation_file=True,
+                      prefix = ""
+                      ):
         '''
         :param csv_folder: 存放生产csv文件的文件夹路径
         :param graph: 将要导出的graphdata
@@ -333,7 +337,9 @@ class CSVGraphdataTranformer():
             node = graph.get_node_info_dict(id)
             labels = node.get(GraphData.DEFAULT_KEY_NODE_LABELS)
             property_names = node.get(GraphData.DEFAULT_KEY_NODE_PROPERTIES).keys()
-            csvfilename = '_'.join(labels)
+            csvfilename = "$nodes$_"+ '_'.join(labels)
+            if prefix != "":
+                csvfilename = str(prefix) + "_" + csvfilename
             if labels not in csvfilename2label.values():
                 csvfilename2label[csvfilename] = labels
                 csvfilename2ids[csvfilename] = set([])
@@ -354,7 +360,7 @@ class CSVGraphdataTranformer():
                     if node:
                         node_dic = {}
                         node_properties = node.get(GraphData.DEFAULT_KEY_NODE_PROPERTIES)
-                        node_dic[node_file_id] = node.get(GraphData.DEFAULT_KEY_NODE_ID)
+                        node_dic[node_file_id] = node_id_value_prefix + "_" + str(node.get(GraphData.DEFAULT_KEY_NODE_ID))
                         node_dic[csv_labels] = node.get(GraphData.DEFAULT_KEY_NODE_LABELS)
                         for property_name in csvfilename2property_name[csvfilename]:
                             node_dic[property_name] = node_properties.get(property_name)
@@ -367,7 +373,10 @@ class CSVGraphdataTranformer():
         relation_types = graph.get_all_relation_types()
         relation_count = 0
         if only_one_relation_file:
-            with open(os.path.join(csv_folder, '{}.{}'.format('relations', 'csv')), 'w', newline='',
+            relation_file_name = "$relations$"
+            if prefix !="":
+                relation_file_name = str(prefix) + "_" + relation_file_name
+            with open(os.path.join(csv_folder, '{}.{}'.format(relation_file_name, 'csv')), 'w', newline='',
                       encoding='utf-8') as csvfile:
                 writer = csv.writer(csvfile, delimiter=',')
                 first_relation = True
@@ -375,9 +384,9 @@ class CSVGraphdataTranformer():
                     relation_pairs = graph.get_relations(relation_type=relation_type)
                     for relation_pair in relation_pairs:
                         relation_dic = {}
-                        relation_dic[relation_file_start_id] = int(relation_pair[0])
+                        relation_dic[relation_file_start_id] = node_id_value_prefix + "_" + str(relation_pair[0])
                         relation_dic[relation_file_type] = relation_pair[1]
-                        relation_dic[relation_file_end_id] = int(relation_pair[2])
+                        relation_dic[relation_file_end_id] = node_id_value_prefix + "_" + str(relation_pair[2])
                         if first_relation:
                             writer.writerow(relation_dic)
                             first_relation = False
@@ -386,17 +395,20 @@ class CSVGraphdataTranformer():
             print("一共导入csv的关系个数:   ", relation_count)
             print("一共生成", len(csvfilename2label), "个csv节点文件和", str(1), "个csv关系文件")
         else:
+            relation_file_name = "$relations$"
+            if prefix != "":
+                relation_file_name = str(prefix) + "_" + relation_file_name + "_"
             for relation_type in relation_types:
                 relation_pairs = graph.get_relations(relation_type=relation_type)
-                with open(os.path.join(csv_folder, '{}.{}'.format(relation_type.replace(' ', ''), 'csv')), 'w', newline='',
+                with open(os.path.join(csv_folder, '{}.{}'.format(relation_file_name + relation_type.replace(' ', '_'), 'csv')), 'w', newline='',
                           encoding='utf-8') as csvfile:
                     writer = csv.writer(csvfile, delimiter=',')
                     first_relation = True
                     for relation_pair in relation_pairs:
                         relation_dic = {}
-                        relation_dic[GraphData.DEFAULT_KEY_RELATION_START_ID] = int(relation_pair[0])
+                        relation_dic[GraphData.DEFAULT_KEY_RELATION_START_ID] = node_id_value_prefix + "_" + str(relation_pair[0])
                         relation_dic[GraphData.DEFAULT_KEY_RELATION_TYPE] = relation_pair[1]
-                        relation_dic[GraphData.DEFAULT_KEY_RELATION_END_ID] = int(relation_pair[2])
+                        relation_dic[GraphData.DEFAULT_KEY_RELATION_END_ID] = node_id_value_prefix + "_" + str(relation_pair[2])
                         if first_relation:
                             writer.writerow(relation_dic)
                             first_relation = False
@@ -481,3 +493,4 @@ class CSVGraphdataTranformer():
                         count = count + 1
         print("从", file, "一共导入graphdata关系个数:   ", count)
         return graph
+

@@ -11,12 +11,11 @@ with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
 requirements = [
-    'Click>=7.0',
     'networkx>=2.4',
     'numpy>=1.18',
     'scipy>=1.4.0',
     'smart_open',
-    'py2neo==4.3.0',
+    'py2neo>=4.1.0',
     'pandas'
 ]
 
@@ -55,6 +54,6 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/FudanSELab/kgdt',
-    version='0.4.3',
+    version='0.4.6',
     zip_safe=False,
 )
